@@ -28,7 +28,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        self.subscribeToKeyboardNotifications()
+        subscribeToKeyboardNotifications()
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.Camera)
         let image: UIImage? = imageView.image
         if (image == nil) {
@@ -38,35 +38,35 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        self.unsubscribeFromKeyboardNotifications()
+        unsubscribeFromKeyboardNotifications()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        topLabel.text = "TOP"
-        topLabel.textAlignment = .Center
-        topLabel.defaultTextAttributes = defaultTextAttributes
-        topLabel.delegate = self.textFieldDelegate
-        
-        bottomLabel.text = "BOTTOM"
-        bottomLabel.textAlignment = .Center
-        bottomLabel.delegate = self.textFieldDelegate
-        bottomLabel.defaultTextAttributes = defaultTextAttributes
+        initializeTextField(topLabel, text: "TOP")
+        initializeTextField(bottomLabel, text: "BOTTOM")
+    }
+    
+    func initializeTextField(textField: UITextField, text: String) {
+        textField.text = text
+        textField.textAlignment = .Center
+        textField.defaultTextAttributes = defaultTextAttributes
+        textField.delegate = textFieldDelegate
     }
 
     @IBAction func pickAnImageFromCamera(sender: AnyObject) {
         let imagePicker = UIImagePickerController()
         imagePicker.delegate = self
         imagePicker.sourceType = UIImagePickerControllerSourceType.Camera
-        self.presentViewController(imagePicker, animated: true, completion: nil)
+        presentViewController(imagePicker, animated: true, completion: nil)
     }
     
     @IBAction func pickAnImageFromAlbum(sender: AnyObject) {
         let imagePicker = UIImagePickerController()
         imagePicker.delegate = self
         imagePicker.sourceType = UIImagePickerControllerSourceType.PhotoLibrary
-        self.presentViewController(imagePicker, animated: true, completion: nil)
+        presentViewController(imagePicker, animated: true, completion: nil)
     }
     
     @IBAction func shareMeme(sender: AnyObject) {
@@ -76,10 +76,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         controller.completionWithItemsHandler = {
             (activity, success, items, error) in
             print("Activity: \(activity) Success: \(success) Items: \(items) Error: \(error)")
-            self.save(memedImage)
+            if (success) {
+                self.save(memedImage)
+            }
             self.dismissViewControllerAnimated(true, completion: nil)
         }
-        self.presentViewController(controller, animated: true, completion: nil)
+        presentViewController(controller, animated: true, completion: nil)
     }
     
     @IBAction func cancelCurrentMeme(sender: AnyObject) {
@@ -101,8 +103,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         toolBar.hidden = true
         
         // render view to an image
-        UIGraphicsBeginImageContext(self.view.frame.size)
-        self.view.drawViewHierarchyInRect(self.view.frame, afterScreenUpdates: true)
+        UIGraphicsBeginImageContext(view.frame.size)
+        view.drawViewHierarchyInRect(view.frame, afterScreenUpdates: true)
         let memedImage : UIImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
@@ -120,11 +122,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         if (image != nil) {
             shareButton.enabled = true
         }
-        self.dismissViewControllerAnimated(true, completion: nil)
+        dismissViewControllerAnimated(true, completion: nil)
     }
     
     func imagePickerControllerDidCancel(picker: UIImagePickerController) {
-        self.dismissViewControllerAnimated(true, completion: nil)
+        dismissViewControllerAnimated(true, completion: nil)
     }
     
     func getKeyboardHeight(notification: NSNotification) -> CGFloat {
@@ -135,14 +137,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func keyboardWillShow(notification: NSNotification) {
         if bottomLabel.isFirstResponder() {
-            self.view.frame.origin.y -= getKeyboardHeight(notification)
+            view.frame.origin.y -= getKeyboardHeight(notification)
         }
     }
     
     func keyboardWillHide(notification: NSNotification) {
-        if bottomLabel.isFirstResponder() {
-            self.view.frame.origin.y += getKeyboardHeight(notification)
-        }
+        view.frame.origin.y = 0
     }
     
     func subscribeToKeyboardNotifications() {
